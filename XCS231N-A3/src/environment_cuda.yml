@@ -1,0 +1,35 @@
+name: XCS231N_CUDA
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.12
+  - notebook=7.5.3
+  - h5py=3.14.0
+  - imageio=2.37.3
+  - ipython=9.15.0
+  - json5=0.12.1
+  - matplotlib=3.10.8
+  - pillow=12.0.0
+  - future=1.0.0
+  - cython=3.2.5
+  - scipy=1.18.0
+  - pandas=3.0.3
+  - tqdm=4.68.2
+  - scikit-learn=1.9.0
+  # Stick to pip 25.1 due to issues with installing CLIP
+  - pip=25.1
+  - pip:
+    - "--find-links https://download.pytorch.org/whl/torch/"
+    - torch==2.11.0+cu126
+    - "--find-links https://download.pytorch.org/whl/torchvision/"
+    - torchvision==0.26.0+cu126
+    - git+https://github.com/openai/CLIP.git
+    - ftfy==6.3.1
+    - regex==2026.7.19
+    - thop==0.1.1-2209072238
+    # required by tensorflow
+    - numpy==2.5.1
+    - tensorflow==2.21.0
+    - tensorflow_datasets==4.9.10
+    - opencv-python==5.0.0.93
