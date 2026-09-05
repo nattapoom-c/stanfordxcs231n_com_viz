@@ -44,6 +44,7 @@ def rnn_step_forward(x, prev_h, Wx, Wh, b):
     # TODO: Implement a single forward step for the vanilla RNN.                 #
     ##############################################################################
     # ### START CODE HERE ###
+    next_h = torch.tanh(x @ Wx + prev_h @ Wh + b)
     # ### END CODE HERE ###
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -75,6 +76,12 @@ def rnn_forward(x, h0, Wx, Wh, b):
     # above. You can use a for loop to help compute the forward pass.            #
     ##############################################################################
     # ### START CODE HERE ###
+    states = []
+    prev_h = h0
+    for t in range(x.shape[1]):
+        prev_h = rnn_step_forward(x[:, t, :], prev_h, Wx, Wh, b)
+        states.append(prev_h)
+    h = torch.stack(states, dim=1) if states else h0[:, None, :][:, :0, :]
     # ### END CODE HERE ###
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -104,6 +111,7 @@ def word_embedding_forward(x, W):
     # HINT: This can be done in one line using Pytorch's array indexing.         #
     ##############################################################################
     # ### START CODE HERE ###
+    out = W[x]
     # ### END CODE HERE ###
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -137,6 +145,11 @@ def lstm_step_forward(x, prev_h, prev_c, Wx, Wh, b):
     # You may want to use the numerically stable sigmoid implementation above.  #
     #############################################################################
     # ### START CODE HERE ###
+    ai, af, ao, ag = (x @ Wx + prev_h @ Wh + b).chunk(4, dim=1)
+    i, f, o = torch.sigmoid(ai), torch.sigmoid(af), torch.sigmoid(ao)
+    g = torch.tanh(ag)
+    next_c = f * prev_c + i * g
+    next_h = o * torch.tanh(next_c)
     # ### END CODE HERE ###
     ##############################################################################
     #                               END OF YOUR CODE                             #
@@ -172,6 +185,12 @@ def lstm_forward(x, h0, Wx, Wh, b):
     # You should use the lstm_step_forward function that you just defined.      #
     #############################################################################
     # ### START CODE HERE ###
+    states = []
+    prev_h, prev_c = h0, torch.zeros_like(h0)
+    for t in range(x.shape[1]):
+        prev_h, prev_c = lstm_step_forward(x[:, t, :], prev_h, prev_c, Wx, Wh, b)
+        states.append(prev_h)
+    h = torch.stack(states, dim=1) if states else h0[:, None, :][:, :0, :]
     # ### END CODE HERE ###
     ##############################################################################
     #                               END OF YOUR CODE                             #

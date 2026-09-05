@@ -62,6 +62,13 @@ class ThreeLayerConvNet(object):
         # the start of the loss() function to see how that happens.                #
         ############################################################################
         # ### START CODE HERE ###
+        C, H, W = input_dim
+        self.params['W1'] = weight_scale * np.random.randn(num_filters, C, filter_size, filter_size)
+        self.params['b1'] = np.zeros(num_filters)
+        self.params['W2'] = weight_scale * np.random.randn(num_filters * (H // 2) * (W // 2), hidden_dim)
+        self.params['b2'] = np.zeros(hidden_dim)
+        self.params['W3'] = weight_scale * np.random.randn(hidden_dim, num_classes)
+        self.params['b3'] = np.zeros(num_classes)
         # ### END CODE HERE ###
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -98,6 +105,9 @@ class ThreeLayerConvNet(object):
         # xcs231n/layer_utils.py in your implementation (already imported).         #
         ############################################################################
         # ### START CODE HERE ###
+        hidden1, cache1 = conv_relu_pool_forward(X.astype(self.dtype), W1, b1, conv_param, pool_param)
+        hidden2, cache2 = affine_relu_forward(hidden1, W2, b2)
+        scores, cache3 = affine_forward(hidden2, W3, b3)
         # ### END CODE HERE ###
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -118,6 +128,14 @@ class ThreeLayerConvNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         # ### START CODE HERE ###
+        loss, dscores = softmax_loss(scores, y)
+        dh2, grads['W3'], grads['b3'] = affine_backward(dscores, cache3)
+        dh1, grads['W2'], grads['b2'] = affine_relu_backward(dh2, cache2)
+        dx, grads['W1'], grads['b1'] = conv_relu_pool_backward(dh1, cache1)
+        for i in range(1, 4):
+            weight = self.params['W%d' % i]
+            loss += 0.5 * self.reg * np.sum(weight ** 2)
+            grads['W%d' % i] += self.reg * weight
         # ### END CODE HERE ###
         ############################################################################
         #                             END OF YOUR CODE                             #

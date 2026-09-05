@@ -67,6 +67,8 @@ def sgd_momentum(w, dw, config=None):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # ### START CODE HERE ###
+    v = config['momentum'] * v - config['learning_rate'] * dw
+    next_w = w + v
     # ### END CODE HERE ###
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -100,6 +102,8 @@ def rmsprop(w, dw, config=None):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # ### START CODE HERE ###
+    config['cache'] = config['decay_rate'] * config['cache'] + (1 - config['decay_rate']) * dw ** 2
+    next_w = w - config['learning_rate'] * dw / (np.sqrt(config['cache']) + config['epsilon'])
     # ### END CODE HERE ###
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -137,6 +141,12 @@ def adam(w, dw, config=None):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # ### START CODE HERE ###
+    config['t'] += 1
+    config['m'] = config['beta1'] * config['m'] + (1 - config['beta1']) * dw
+    config['v'] = config['beta2'] * config['v'] + (1 - config['beta2']) * dw ** 2
+    mhat = config['m'] / (1 - config['beta1'] ** config['t'])
+    vhat = config['v'] / (1 - config['beta2'] ** config['t'])
+    next_w = w - config['learning_rate'] * mhat / (np.sqrt(vhat) + config['epsilon'])
     # ### END CODE HERE ###
     ###########################################################################
     #                             END OF YOUR CODE                            #
