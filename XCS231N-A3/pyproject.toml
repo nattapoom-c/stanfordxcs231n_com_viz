@@ -26,6 +26,7 @@ dependencies = [
     "tensorflow_datasets==4.9.10",
     "opencv-python==5.0.0.93",
     "clip",
+    "ipywidgets>=8.1.9",
 ]
 
 [tool.uv.sources]
