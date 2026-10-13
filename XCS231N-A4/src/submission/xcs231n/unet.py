@@ -181,6 +181,11 @@ class Unet(nn.Module):
             # load a pretrained checkpoint.
             ##################################################################
             # ### START CODE HERE ###
+            down_block = nn.ModuleList([
+                ResnetBlock(dim_in, dim_in, context_dim),
+                ResnetBlock(dim_in, dim_in, context_dim),
+                Downsample(dim_in, dim_out),
+            ])
             # ### END CODE HERE ###
             ##################################################################
             self.downs.append(down_block)
@@ -206,6 +211,11 @@ class Unet(nn.Module):
             # channels at the input of both ResnetBlocks.
             ##################################################################
             # ### START CODE HERE ###
+            up_block = nn.ModuleList([
+                Upsample(dim_in, dim_out),
+                ResnetBlock(2 * dim_out, dim_out, context_dim),
+                ResnetBlock(2 * dim_out, dim_out, context_dim),
+            ])
             # ### END CODE HERE ###
             self.ups.append(up_block)
             ##################################################################
@@ -229,6 +239,10 @@ class Unet(nn.Module):
         # For unconditional sampling, pass None in`text_emb`.
         ##################################################################
         # ### START CODE HERE ###
+        cond = self.forward(x, time, model_kwargs)
+        model_kwargs["text_emb"] = None
+        uncond = self.forward(x, time, model_kwargs)
+        x = (cfg_scale + 1) * cond - cfg_scale * uncond
         # ### END CODE HERE ###
         ##################################################################
 
@@ -286,6 +300,23 @@ class Unet(nn.Module):
         ##################################################################
 
         # ### START CODE HERE ###
+        # Save both residual outputs for the mirrored upsampling blocks.
+        skips = []
+        for block1, block2, downsample in self.downs:
+            x = block1(x, context)
+            skips.append(x)
+            x = block2(x, context)
+            skips.append(x)
+            x = downsample(x)
+
+        x = self.mid_block1(x, context)
+        x = self.mid_block2(x, context)
+
+        # Consume skip connections in reverse order at matching resolutions.
+        for upsample, block1, block2 in self.ups:
+            x = upsample(x)
+            x = block1(torch.cat((x, skips.pop()), dim=1), context)
+            x = block2(torch.cat((x, skips.pop()), dim=1), context)
         # ### END CODE HERE ###
         ##################################################################
 
